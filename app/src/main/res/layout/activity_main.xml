@@ -8,24 +8,49 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="170dp"
+        android:layout_alignParentTop="true"
+        android:gravity="center">
+
+        <View
+            android:id="@+id/amp_disc"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:background="@drawable/red_circle"></View>
+
+    </RelativeLayout>
+
+
     <Chronometer
         android:id="@+id/chronometer"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:background="@drawable/red_circle"
-        android:textSize="40sp"
-        android:gravity="center"
+        android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:background="@drawable/red_circle"
+        android:gravity="center"
+        android:textSize="40sp" />
 
     <Button
         android:id="@+id/reset_button"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:text="@string/reset"
-        android:background="@drawable/green_circle"
-        android:visibility="gone"
+        android:layout_alignEnd="@+id/chronometer"
         android:layout_below="@+id/chronometer"
-        android:layout_alignEnd="@+id/chronometer" />
+        android:background="@drawable/green_circle"
+        android:text="@string/reset"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/amp_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:text="0"
+        android:textColor="@color/WHITE" />
 
 </RelativeLayout>

@@ -7,6 +7,8 @@ import android.os.SystemClock;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Chronometer;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -14,10 +16,12 @@ import java.io.IOException;
 
 public class MainActivity extends Activity {
 
-    private static final long POLL_DELAY = 4000;
+    private static final long POLL_DELAY = 200;
 
     private Chronometer chronometer;
     private Button resetButton;
+    private TextView ampText;
+    private View ampDisc;
 
     private Runnable pollTask;
     private Handler taskHandler;
@@ -36,6 +40,8 @@ public class MainActivity extends Activity {
 
         chronometer = (Chronometer) findViewById(R.id.chronometer);
         resetButton = (Button) findViewById(R.id.reset_button);
+        ampText = (TextView) findViewById(R.id.amp_text);
+        ampDisc = findViewById(R.id.amp_disc);
 
         chronometer.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,7 +127,13 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
                     // TODO poll audio
-                    Toast.makeText(MainActivity.this, "Polling...", Toast.LENGTH_SHORT).show();
+                    int amp = monitor.getMaxAmplitude();
+                    ampText.setText(String.valueOf(amp));
+                    int radius = (amp * 140 / 20000) + 10;
+                    RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) ampDisc.getLayoutParams();
+                    params.width = radius;
+                    params.height = radius;
+                    ampDisc.setLayoutParams(params);
                     taskHandler.postDelayed(this, POLL_DELAY);
                 }
             };
