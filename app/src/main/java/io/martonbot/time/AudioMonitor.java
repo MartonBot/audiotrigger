@@ -1,7 +1,6 @@
 package io.martonbot.time;
 
 import android.media.MediaRecorder;
-import android.util.Log;
 
 import java.io.IOException;
 
@@ -19,7 +18,7 @@ public class AudioMonitor {
             // TODO consider changing the encoder
             mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             // TODO consider setting a different bit rate and sampling rate
-            mediaRecorder.setOutputFile("dev/null");
+            mediaRecorder.setOutputFile("/dev/null");
             mediaRecorder.prepare();
             mediaRecorder.start();
         }
@@ -27,21 +26,11 @@ public class AudioMonitor {
     }
 
     public void stopMonitoring() {
-        Log.i("io.martonbot.time", "stopMonitoring 1");
         if (mediaRecorder != null) {
-            Log.i("io.martonbot.time", "stopMonitoring 2");
-            try {
-                mediaRecorder.stop();
-            }
-            catch (Exception e) {
-                Log.w("io.martonbot.time", "exception on media recorder stop", e);
-            }
-
-            Log.i("io.martonbot.time", "stopMonitoring 3");
+            mediaRecorder.stop();
             mediaRecorder.reset();
-            Log.i("io.martonbot.time", "stopMonitoring 4");
             mediaRecorder.release();
-            Log.i("io.martonbot.time", "stopMonitoring 5");
+            mediaRecorder = null;
         }
     }
 
@@ -51,7 +40,6 @@ public class AudioMonitor {
         }
         return 0;
     }
-
 
 
 }

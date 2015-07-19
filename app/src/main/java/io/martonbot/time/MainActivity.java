@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Chronometer;
@@ -61,8 +60,6 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        Log.i("io.martonbot.time", "onResume");
-
         // start monitoring
         try {
             monitor.startMonitoring();
@@ -79,33 +76,16 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
 
-        Log.i("io.martonbot.time", "onPause 1");
-
         // stop monitoring
         monitor.stopMonitoring();
-
-        Log.i("io.martonbot.time", "onPause  2");
 
         // cancel Handler callback
         taskHandler.removeCallbacks(getPollTask());
 
-        Log.i("io.martonbot.time", "onPause 3");
-
         // stop chronometer updates on pause
         chronometer.stop();
 
-        Log.i("io.martonbot.time", "onPause 4");
-
         super.onPause();
-        Log.i("io.martonbot.time", "onPause 5");
-    }
-
-    @Override
-    protected void onStop() {
-
-        Log.i("io.martonbot.time", "onStop 1");
-        super.onStop();
-        Log.i("io.martonbot.time", "onStop 2");
     }
 
     private void startChronometer() {
