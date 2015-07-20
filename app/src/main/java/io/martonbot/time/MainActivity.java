@@ -46,7 +46,7 @@ public class MainActivity extends Activity {
 
         chronometer = (Chronometer) findViewById(R.id.chronometer);
         resetButton = (Button) findViewById(R.id.reset_button);
-        ampText = (TextView) findViewById(R.id.amp_text);
+        ampText = (TextView) findViewById(R.id.cent_text);
         ampDisc = findViewById(R.id.amp_disc);
 
         chronometer.setOnClickListener(new View.OnClickListener() {
