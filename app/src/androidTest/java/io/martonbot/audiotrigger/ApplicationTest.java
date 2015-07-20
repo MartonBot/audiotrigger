@@ -1,4 +1,4 @@
-package io.martonbot.time;
+package io.martonbot.audiotrigger;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

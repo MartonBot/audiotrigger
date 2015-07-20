@@ -1,4 +1,4 @@
-package io.martonbot.time;
+package io.martonbot.audiotrigger;
 
 import android.media.MediaRecorder;
 import android.util.Log;
@@ -31,12 +31,12 @@ public class AudioMonitor {
             try {
                 mediaRecorder.stop();
             } catch (Exception e) {
-                Log.e("io.martonbot.time", "Error wile calling MediaRecorder.stop()", e);
+                Log.e("io.martonbot.at", "Error while calling MediaRecorder.stop()", e);
             }
             try {
                 mediaRecorder.reset();
             } catch (Exception e) {
-                Log.e("io.martonbot.time", "Error wile calling MediaRecorder.reset()", e);
+                Log.e("io.martonbot.at", "Error while calling MediaRecorder.reset()", e);
             }
             mediaRecorder.release();
             mediaRecorder = null;

@@ -5,7 +5,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "io.martonbot.time"
+        applicationId "io.martonbot.audiotrigger"
         minSdkVersion 19
         targetSdkVersion 22
         versionCode 1
