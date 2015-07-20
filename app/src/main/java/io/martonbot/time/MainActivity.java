@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.support.v4.content.res.ResourcesCompat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Chronometer;
@@ -17,6 +18,10 @@ import java.io.IOException;
 public class MainActivity extends Activity {
 
     private static final long POLL_DELAY = 200;
+    private static final long COOLDOWN = 2000;
+
+    private static final int BASE = 6;
+    private static final int THRESHOLD = 10;
 
     private Chronometer chronometer;
     private Button resetButton;
@@ -29,6 +34,7 @@ public class MainActivity extends Activity {
 
     private boolean isChronometerRunning = false;
     private long elapsedTime = 0;
+    private long triggerTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,11 +52,7 @@ public class MainActivity extends Activity {
         chronometer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isChronometerRunning) {
-                    stopChronometer();
-                } else {
-                    startChronometer();
-                }
+                toggleChronometer();
             }
         });
 
@@ -77,6 +79,10 @@ public class MainActivity extends Activity {
             errorToast.show();
         }
 
+        if (isChronometerRunning) {
+            chronometer.start();
+        }
+
     }
 
     @Override
@@ -89,7 +95,12 @@ public class MainActivity extends Activity {
         taskHandler.removeCallbacks(getPollTask());
 
         // stop chronometer updates on pause
-        chronometer.stop();
+        // but don't stop the time counting
+        if (isChronometerRunning) {
+            chronometer.stop();
+        }
+
+        // TODO consider saving elapsed time and running status to storage
 
         super.onPause();
     }
@@ -98,6 +109,7 @@ public class MainActivity extends Activity {
         chronometer.setBase(SystemClock.elapsedRealtime() - elapsedTime);
         chronometer.start();
         isChronometerRunning = true;
+        updateResetButton();
     }
 
     private void stopChronometer() {
@@ -107,6 +119,14 @@ public class MainActivity extends Activity {
         updateResetButton();
     }
 
+    private void toggleChronometer() {
+        if (isChronometerRunning) {
+            stopChronometer();
+        } else {
+            startChronometer();
+        }
+    }
+
     private void reset() {
         chronometer.setBase(SystemClock.elapsedRealtime());
         elapsedTime = 0;
@@ -114,7 +134,7 @@ public class MainActivity extends Activity {
     }
 
     private void updateResetButton() {
-        if (elapsedTime > 0) {
+        if (elapsedTime > 0 && !isChronometerRunning) {
             resetButton.setVisibility(View.VISIBLE);
         } else {
             resetButton.setVisibility(View.GONE);
@@ -126,15 +146,22 @@ public class MainActivity extends Activity {
             pollTask = new Runnable() {
                 @Override
                 public void run() {
-                    // TODO poll audio
-                    int amp = monitor.getMaxAmplitude();
+                    int amp = monitor.getLogMaxAmplitude();
                     ampText.setText(String.valueOf(amp));
-                    int radius = (amp * 140 / 20000) + 10;
+                    int diameter = ((amp - BASE) * (100 / (THRESHOLD - BASE))) + 50;
                     RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) ampDisc.getLayoutParams();
-                    params.width = radius;
-                    params.height = radius;
+                    params.width = diameter;
+                    params.height = diameter;
                     ampDisc.setLayoutParams(params);
+                    int drawableId = amp >= THRESHOLD ? R.drawable.red_circle : R.drawable.black_circle;
+                    ampDisc.setBackground(ResourcesCompat.getDrawable(getResources(), drawableId, null));
                     taskHandler.postDelayed(this, POLL_DELAY);
+
+                    if (amp >= THRESHOLD && SystemClock.elapsedRealtime() - triggerTime > COOLDOWN) {
+                        triggerTime = SystemClock.elapsedRealtime();
+                        toggleChronometer();
+                    }
+
                 }
             };
         }

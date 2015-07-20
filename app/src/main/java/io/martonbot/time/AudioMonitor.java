@@ -41,5 +41,9 @@ public class AudioMonitor {
         return 0;
     }
 
+    public int getLogMaxAmplitude() {
+        return (int) Math.round(Math.log(getMaxAmplitude() + 1));
+    }
+
 
 }
