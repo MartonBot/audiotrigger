@@ -15,13 +15,14 @@ import android.widget.Toast;
 
 public class CalibrateAudioActivity extends Activity {
 
+    // TODO maybe put that in a class
+    public final static String SHARED_PREFS = "AUDIO_TRIGGER_PREFERENCES";
+    public final static String PREF_THRESHOLD = "PREF_THRESHOLD";
+    public final static String PREF_AUDIO_ENABLED = "PREF_AUDIO_ENABLED";
+    public final static int DEFAULT_THRESHOLD = 8;
     private static final long POLL_DELAY = 200;
 
-    private final static String SHARED_PREFS = "AUDIO_TRIGGER_PREFERENCES";
-    private final static String PREF_THRESHOLD = "PREF_THRESHOLD";
-    private final static String PREF_AUDIO_ENABLED = "PREF_AUDIO_ENABLED";
-    private final static int DEFAULT_THRESHOLD = 8;
-
+    // TODO add cooldown setting
     private View ampBar;
     private TextView ampText;
     private TextView ampLogText;
