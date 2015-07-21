@@ -15,7 +15,7 @@ public class AudioMonitor {
 
     private MediaRecorder mediaRecorder;
 
-    public void startMonitoring() throws IOException {
+    public boolean startMonitoring() {
 
         if (mediaRecorder == null) {
             mediaRecorder = new MediaRecorder();
@@ -26,10 +26,15 @@ public class AudioMonitor {
             mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
             // TODO consider setting a different bit rate and sampling rate
             mediaRecorder.setOutputFile("/dev/null");
-            mediaRecorder.prepare();
+            try {
+                mediaRecorder.prepare();
+            } catch (IOException e) {
+                stopMonitoring();
+                return false;
+            }
             mediaRecorder.start();
         }
-
+        return true;
     }
 
     public void stopMonitoring() {

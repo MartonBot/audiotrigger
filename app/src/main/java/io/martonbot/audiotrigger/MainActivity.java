@@ -13,8 +13,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
-
 
 public class MainActivity extends Activity {
 
@@ -87,14 +85,13 @@ public class MainActivity extends Activity {
         super.onResume();
 
         // start monitoring
-        try {
-            monitor.startMonitoring();
+        boolean success = monitor.startMonitoring();
+        if (success) {
             taskHandler.postDelayed(getPollTask(), POLL_DELAY);
-
-        } catch (IOException e) {
-            monitor.stopMonitoring();
+        } else {
             Toast errorToast = Toast.makeText(MainActivity.this, "Audio monitoring is not available", Toast.LENGTH_SHORT);
             errorToast.show();
+            // TODO disable relevant UI parts
         }
 
         if (isChronometerRunning) {

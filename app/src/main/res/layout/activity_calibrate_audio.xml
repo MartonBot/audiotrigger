@@ -12,18 +12,18 @@
         android:layout_centerInParent="true"
         android:orientation="vertical">
 
-        <SeekBar
+        <Switch
+            android:id="@+id/switch_enable_audio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:max="10"
-            android:padding="10dp" />
+            android:padding="15dp"
+            android:text="Enable audio trigger" />
 
         <RelativeLayout
+            android:id="@+id/amp_bar_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="10dp">
+            android:padding="15dp">
 
             <View
                 android:id="@+id/amp_bar"
@@ -35,11 +35,11 @@
         </RelativeLayout>
 
         <SeekBar
+            android:id="@+id/threshold_seekbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
             android:max="10"
-            android:padding="10dp" />
+            android:padding="15dp" />
 
     </LinearLayout>
 
@@ -60,6 +60,5 @@
         android:layout_alignParentEnd="true"
         android:text="0"
         android:textAppearance="?android:attr/textAppearanceMedium" />
-
 
 </RelativeLayout>
