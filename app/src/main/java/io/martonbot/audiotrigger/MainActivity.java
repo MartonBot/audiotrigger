@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.view.View;
+import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
 import android.widget.Button;
 import android.widget.TextView;
@@ -36,7 +37,6 @@ public class MainActivity extends Activity {
     private ScaleAnimation anim;
     private float currentScale = 1f;
     private int currentThreshold;
-    private boolean isAudioEnabled;
 
     private boolean isChronometerRunning = false;
     private long elapsedTime = 0;
@@ -57,7 +57,6 @@ public class MainActivity extends Activity {
         sharedPreferences = getSharedPreferences(CalibrateAudioActivity.SHARED_PREFS, MODE_PRIVATE);
 
         currentThreshold = sharedPreferences.getInt(CalibrateAudioActivity.PREF_THRESHOLD, CalibrateAudioActivity.DEFAULT_THRESHOLD);
-        isAudioEnabled = sharedPreferences.getBoolean(CalibrateAudioActivity.PREF_AUDIO_ENABLED, true);
 
         resetButton = (Button) findViewById(R.id.reset_button);
         minutesText = (TextView) findViewById(R.id.minutes_text);
@@ -172,17 +171,16 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
 
+                    int amp = monitor.getMaxAmplitude();
                     int ampLog = monitor.getLogMaxAmplitude();
+                    float ratio = ampLog / (float) currentThreshold;
 
-                    anim = new ScaleAnimation(currentScale, ampLog / 10f, currentScale, ampLog / 10f);
+                    anim = new ScaleAnimation(currentScale, (1 + ratio) / 2, currentScale, (1 + ratio) / 2, Animation.RELATIVE_TO_SELF, .5f, Animation.RELATIVE_TO_SELF, .5f);
                     anim.setDuration((long) (POLL_DELAY * .75));
                     anim.setFillEnabled(true);
                     anim.setFillAfter(true);
-                    currentScale = ampLog / 10f;
+                    currentScale = (1 + ratio) / 2;
                     ampDisc.startAnimation(anim);
-
-                    int colorId = ampLog >= currentThreshold ? R.color.primary_light : R.color.primary_dark;
-                    ampDisc.setBackgroundColor(getResources().getColor(colorId));
 
                     if (ampLog >= currentThreshold && SystemClock.elapsedRealtime() - triggerTime > COOLDOWN) {
                         triggerTime = SystemClock.elapsedRealtime();
