@@ -18,6 +18,7 @@ public class MainActivity extends Activity {
 
     private static final long POLL_DELAY = 200;
     private static final long TICK_DELAY = 75;
+    // TODO expose in a setting
     private static final long COOLDOWN = 500;
 
     private Button resetButton;
@@ -54,9 +55,6 @@ public class MainActivity extends Activity {
 
         monitor = new AudioMonitor();
         taskHandler = new Handler();
-        sharedPreferences = getSharedPreferences(CalibrateAudioActivity.SHARED_PREFS, MODE_PRIVATE);
-
-        currentThreshold = sharedPreferences.getInt(CalibrateAudioActivity.PREF_THRESHOLD, CalibrateAudioActivity.DEFAULT_THRESHOLD);
 
         resetButton = (Button) findViewById(R.id.reset_button);
         minutesText = (TextView) findViewById(R.id.minutes_text);
@@ -92,6 +90,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        sharedPreferences = getSharedPreferences(CalibrateAudioActivity.SHARED_PREFS, MODE_PRIVATE);
+
+        currentThreshold = sharedPreferences.getInt(CalibrateAudioActivity.PREF_THRESHOLD, CalibrateAudioActivity.DEFAULT_THRESHOLD);
 
         // start monitoring
         boolean success = monitor.startMonitoring();
@@ -132,6 +134,7 @@ public class MainActivity extends Activity {
         isChronometerRunning = true;
         taskHandler.postDelayed(getTickTask(), TICK_DELAY);
         updateResetButton();
+        // TODO implement wake lock here
     }
 
     private void stopChronometer() {
@@ -171,15 +174,14 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
 
-                    int amp = monitor.getMaxAmplitude();
                     int ampLog = monitor.getLogMaxAmplitude();
                     float ratio = ampLog / (float) currentThreshold;
 
-                    anim = new ScaleAnimation(currentScale, (1 + ratio) / 2, currentScale, (1 + ratio) / 2, Animation.RELATIVE_TO_SELF, .5f, Animation.RELATIVE_TO_SELF, .5f);
+                    anim = new ScaleAnimation(currentScale, (2 + ratio) / 3, currentScale, (2 + ratio) / 3, Animation.RELATIVE_TO_SELF, .5f, Animation.RELATIVE_TO_SELF, .5f);
                     anim.setDuration((long) (POLL_DELAY * .75));
                     anim.setFillEnabled(true);
                     anim.setFillAfter(true);
-                    currentScale = (1 + ratio) / 2;
+                    currentScale = (2 + ratio) / 3;
                     ampDisc.startAnimation(anim);
 
                     if (ampLog >= currentThreshold && SystemClock.elapsedRealtime() - triggerTime > COOLDOWN) {

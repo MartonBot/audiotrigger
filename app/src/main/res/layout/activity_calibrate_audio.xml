@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="15dp"
+    android:background="@color/accent"
     tools:context="io.martonbot.audiotrigger.CalibrateAudioActivity">
 
     <LinearLayout
@@ -42,23 +43,5 @@
             android:padding="15dp" />
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/amp_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/amp_log_text"
-        android:layout_alignParentEnd="true"
-        android:text="0"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-    <TextView
-        android:id="@+id/amp_log_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:text="0"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
 
 </RelativeLayout>

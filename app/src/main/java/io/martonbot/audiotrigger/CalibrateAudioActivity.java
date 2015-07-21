@@ -9,7 +9,6 @@ import android.view.animation.ScaleAnimation;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -24,8 +23,6 @@ public class CalibrateAudioActivity extends Activity {
 
     // TODO add cooldown setting
     private View ampBar;
-    private TextView ampText;
-    private TextView ampLogText;
     private Switch enableAudioSwitch;
     private SeekBar thresholdSeekBar;
     private View ampBarContainer;
@@ -54,8 +51,6 @@ public class CalibrateAudioActivity extends Activity {
         isAudioEnabled = sharedPreferences.getBoolean(PREF_AUDIO_ENABLED, true);
 
         ampBar = findViewById(R.id.amp_bar);
-        ampText = (TextView) findViewById(R.id.amp_text);
-        ampLogText = (TextView) findViewById(R.id.amp_log_text);
         enableAudioSwitch = (Switch) findViewById(R.id.switch_enable_audio);
         thresholdSeekBar = (SeekBar) findViewById(R.id.threshold_seekbar);
         ampBarContainer = findViewById(R.id.amp_bar_container);
@@ -135,7 +130,6 @@ public class CalibrateAudioActivity extends Activity {
                 @Override
                 public void run() {
 
-                    int amp = monitor.getMaxAmplitude();
                     int ampLog = monitor.getLogMaxAmplitude();
 
                     anim = new ScaleAnimation(currentScale, ampLog / 10f, 1f, 1f);
@@ -145,10 +139,7 @@ public class CalibrateAudioActivity extends Activity {
                     currentScale = ampLog / 10f;
                     ampBar.startAnimation(anim);
 
-                    ampText.setText(String.valueOf(amp));
-                    ampLogText.setText(String.valueOf(ampLog));
-
-                    int colorId = ampLog >= currentThreshold ? R.color.primary_dark : R.color.icons;
+                    int colorId = ampLog >= currentThreshold ? R.color.primary_dark : R.color.primary_light;
                     ampBar.setBackgroundColor(getResources().getColor(colorId));
 
                     taskHandler.postDelayed(this, POLL_DELAY);
