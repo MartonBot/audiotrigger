@@ -1,6 +1,7 @@
 package io.martonbot.audiotrigger;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -27,6 +28,7 @@ public class MainActivity extends Activity {
     private Button resetButton;
     private TextView hundredthsText;
     private View ampDisc;
+    private View settings;
 
     private Runnable pollTask;
     private Runnable tickTask;
@@ -55,6 +57,7 @@ public class MainActivity extends Activity {
         resetButton = (Button) findViewById(R.id.reset_button);
         hundredthsText = (TextView) findViewById(R.id.hundredths_text);
         ampDisc = findViewById(R.id.amp_disc);
+        settings = findViewById(R.id.settings);
 
         chronometer.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,6 +70,14 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 reset();
+            }
+        });
+
+        settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent settingsActivity = new Intent(MainActivity.this, CalibrateAudioActivity.class);
+                startActivity(settingsActivity);
             }
         });
     }

@@ -7,6 +7,12 @@ import java.io.IOException;
 
 public class AudioMonitor {
 
+    private final static int AMP_FLOOR = 500;
+    private final static int AMP_CEIL = 30000;
+    private final static float CONST = 2.442f;
+
+    private int maxAmplitude;
+
     private MediaRecorder mediaRecorder;
 
     public void startMonitoring() throws IOException {
@@ -45,13 +51,14 @@ public class AudioMonitor {
 
     public int getMaxAmplitude() {
         if (mediaRecorder != null) {
-            return mediaRecorder.getMaxAmplitude();
+            maxAmplitude = mediaRecorder.getMaxAmplitude();
+            return maxAmplitude;
         }
-        return 0;
+        return AMP_FLOOR;
     }
 
     public int getLogMaxAmplitude() {
-        return (int) Math.round(Math.log(getMaxAmplitude() + 1));
+        return (int) (CONST * Math.log(maxAmplitude / ((float) AMP_FLOOR)));
     }
 
 

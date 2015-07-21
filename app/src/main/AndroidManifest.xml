@@ -18,7 +18,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name=".CalibrateAudioActivity"
+            android:label="@string/title_activity_calibrate_audio"></activity>
     </application>
 
 </manifest>
