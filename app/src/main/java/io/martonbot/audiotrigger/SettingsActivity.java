@@ -19,18 +19,6 @@ import android.widget.Toast;
 
 public class SettingsActivity extends Activity {
 
-    // TODO maybe put that in a class
-    public final static String SHARED_PREFS = "AUDIO_TRIGGER_PREFERENCES";
-
-    public final static String PREF_AUDIO_ENABLED = "PREF_AUDIO_ENABLED";
-    public final static String PREF_THRESHOLD = "PREF_THRESHOLD";
-    public final static String PREF_COOLDOWN = "PREF_COOLDOWN";
-    public final static String PREF_POLL_INTERVAL = "PREF_POLL_INTERVAL";
-
-    public final static int DEFAULT_THRESHOLD = 8;
-    public final static int DEFAULT_COOLDOWN = 1000;
-    public final static int DEFAULT_POLL_INTERVAL = 200;
-
     private View thresholdSection;
     private View cooldownSection;
     private View pollIntervalSection;
@@ -67,7 +55,7 @@ public class SettingsActivity extends Activity {
 
         monitor = new AudioMonitor();
         taskHandler = new Handler();
-        sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(Preferences.SHARED_PREFS, MODE_PRIVATE);
 
         thresholdSection = findViewById(R.id.threshold_level_section);
         cooldownSection = findViewById(R.id.trigger_cooldown_section);
@@ -83,13 +71,13 @@ public class SettingsActivity extends Activity {
 
         cooldownAdapter = new DropdownAdapter();
         cooldownAdapter.add(500);
-        cooldownAdapter.add(DEFAULT_COOLDOWN);
+        cooldownAdapter.add(Preferences.DEFAULT_COOLDOWN);
         cooldownAdapter.add(2000);
         cooldownAdapter.add(5000);
         cooldownSpinner.setAdapter(cooldownAdapter);
 
         pollIntervalAdapter = new DropdownAdapter();
-        pollIntervalAdapter.add(DEFAULT_POLL_INTERVAL);
+        pollIntervalAdapter.add(Preferences.DEFAULT_POLL_INTERVAL);
         pollIntervalAdapter.add(500);
         pollIntervalAdapter.add(1000);
         pollIntervalSpinner.setAdapter(pollIntervalAdapter);
@@ -100,7 +88,7 @@ public class SettingsActivity extends Activity {
                 isAudioEnabled = isChecked;
                 toggleAudioEnabled();
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putBoolean(PREF_AUDIO_ENABLED, isChecked);
+                editor.putBoolean(Preferences.PREF_AUDIO_ENABLED, isChecked);
                 editor.apply();
                 int textId;
                 if (isAudioEnabled) {
@@ -128,7 +116,7 @@ public class SettingsActivity extends Activity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putInt(PREF_THRESHOLD, threshold);
+                editor.putInt(Preferences.PREF_THRESHOLD, threshold);
                 editor.apply();
             }
 
@@ -139,7 +127,7 @@ public class SettingsActivity extends Activity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 cooldown = (int) cooldownSpinner.getSelectedItem();
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putInt(PREF_COOLDOWN, cooldown);
+                editor.putInt(Preferences.PREF_COOLDOWN, cooldown);
                 editor.apply();
             }
 
@@ -154,7 +142,7 @@ public class SettingsActivity extends Activity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 pollInterval = (int) pollIntervalSpinner.getSelectedItem();
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putInt(PREF_POLL_INTERVAL, pollInterval);
+                editor.putInt(Preferences.PREF_POLL_INTERVAL, pollInterval);
                 editor.apply();
             }
 
@@ -170,10 +158,10 @@ public class SettingsActivity extends Activity {
         super.onResume();
 
         // shared preferences
-        isAudioEnabled = sharedPreferences.getBoolean(PREF_AUDIO_ENABLED, true);
-        threshold = sharedPreferences.getInt(PREF_THRESHOLD, DEFAULT_THRESHOLD);
-        cooldown = sharedPreferences.getInt(PREF_COOLDOWN, DEFAULT_COOLDOWN);
-        pollInterval = sharedPreferences.getInt(PREF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL);
+        isAudioEnabled = sharedPreferences.getBoolean(Preferences.PREF_AUDIO_ENABLED, true);
+        threshold = sharedPreferences.getInt(Preferences.PREF_THRESHOLD, Preferences.DEFAULT_THRESHOLD);
+        cooldown = sharedPreferences.getInt(Preferences.PREF_COOLDOWN, Preferences.DEFAULT_COOLDOWN);
+        pollInterval = sharedPreferences.getInt(Preferences.PREF_POLL_INTERVAL, Preferences.DEFAULT_POLL_INTERVAL);
 
         // start monitoring
         if (isAudioEnabled) {
