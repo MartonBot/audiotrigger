@@ -6,9 +6,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.view.animation.ScaleAnimation;
+import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -21,11 +24,15 @@ public class SettingsActivity2 extends Activity {
     public final static int DEFAULT_THRESHOLD = 8;
     private static final long POLL_DELAY = 200;
 
-    // TODO add cooldown setting
     private View ampBar;
+    private TextView audioStatusText;
     private Switch enableAudioSwitch;
     private SeekBar thresholdSeekBar;
-    private View ampBarContainer;
+    private Spinner cooldownSpinner;
+    private Spinner pollIntervalSpinner;
+
+    private DropdownAdapter cooldownAdapter;
+    private DropdownAdapter pollIntervalAdapter;
 
     private AudioMonitor monitor;
 
@@ -41,7 +48,7 @@ public class SettingsActivity2 extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings2);
+        setContentView(R.layout.activity_settings);
 
         monitor = new AudioMonitor();
         taskHandler = new Handler();
@@ -51,9 +58,11 @@ public class SettingsActivity2 extends Activity {
         isAudioEnabled = sharedPreferences.getBoolean(PREF_AUDIO_ENABLED, true);
 
         ampBar = findViewById(R.id.amp_bar);
+        audioStatusText = (TextView) findViewById(R.id.audio_status_text);
         enableAudioSwitch = (Switch) findViewById(R.id.switch_enable_audio);
         thresholdSeekBar = (SeekBar) findViewById(R.id.threshold_seekbar);
-        ampBarContainer = findViewById(R.id.amp_bar_container);
+        cooldownSpinner = (Spinner) findViewById(R.id.cooldown_spinner);
+        pollIntervalSpinner = (Spinner) findViewById(R.id.poll_interval_spinner);
 
         thresholdSeekBar.setProgress(currentThreshold);
 
@@ -62,10 +71,12 @@ public class SettingsActivity2 extends Activity {
         enableAudioSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                toggleAudioEnabled(isChecked);
+                isAudioEnabled = isChecked;
+                toggleAudioEnabled();
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putBoolean(PREF_AUDIO_ENABLED, isChecked);
+                editor.putBoolean(Preferences.PREF_AUDIO_ENABLED, isChecked);
                 editor.apply();
+                updateAudioTriggerStatusText();
             }
         });
 
@@ -89,7 +100,21 @@ public class SettingsActivity2 extends Activity {
 
         });
 
-        toggleAudioEnabled(isAudioEnabled);
+        cooldownAdapter = new DropdownAdapter();
+        cooldownAdapter.add(500);
+        cooldownAdapter.add(Preferences.DEFAULT_COOLDOWN);
+        cooldownAdapter.add(2000);
+        cooldownAdapter.add(5000);
+        cooldownSpinner.setAdapter(cooldownAdapter);
+
+        pollIntervalAdapter = new DropdownAdapter();
+        pollIntervalAdapter.add(Preferences.DEFAULT_POLL_INTERVAL);
+        pollIntervalAdapter.add(500);
+        pollIntervalAdapter.add(1000);
+        pollIntervalAdapter.add(3000);
+        pollIntervalSpinner.setAdapter(pollIntervalAdapter);
+
+        toggleAudioEnabled();
     }
 
     @Override
@@ -149,13 +174,47 @@ public class SettingsActivity2 extends Activity {
         return pollTask;
     }
 
-    private void toggleAudioEnabled(boolean isAudioEnabled) {
+    private void toggleAudioEnabled() {
         int state = View.VISIBLE;
         if (!isAudioEnabled) {
             state = View.INVISIBLE;
         }
         thresholdSeekBar.setVisibility(state);
-        ampBarContainer.setVisibility(state);
+
+    }
+
+    private void updateAudioTriggerStatusText() {
+        int textId;
+        if (isAudioEnabled) {
+            startAudioMonitoring();
+            textId = R.string.audio_trigger_enabled;
+        } else {
+            stopAudioMonitoring();
+            textId = R.string.audio_trigger_disabled;
+        }
+        audioStatusText.setText(textId);
+    }
+
+    private void startAudioMonitoring() {
+        boolean isAudioAvailable = monitor.startMonitoring();
+        if (isAudioAvailable) {
+            taskHandler.postDelayed(getPollTask(), POLL_DELAY);
+        } else {
+            monitor.stopMonitoring();
+            Toast.makeText(SettingsActivity2.this, "Audio monitoring is not available", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void stopAudioMonitoring() {
+        monitor.stopMonitoring();
+    }
+
+    private class DropdownAdapter extends ArrayAdapter<Integer> {
+
+        public DropdownAdapter() {
+            super(SettingsActivity2.this, R.layout.dropdown_item);
+        }
+
     }
 
 }
