@@ -74,7 +74,7 @@ public class MainActivity extends Activity {
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent settingsActivity = new Intent(MainActivity.this, CalibrateAudioActivity.class);
+                Intent settingsActivity = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(settingsActivity);
             }
         });
@@ -91,9 +91,9 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        sharedPreferences = getSharedPreferences(CalibrateAudioActivity.SHARED_PREFS, MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(SettingsActivity.SHARED_PREFS, MODE_PRIVATE);
 
-        currentThreshold = sharedPreferences.getInt(CalibrateAudioActivity.PREF_THRESHOLD, CalibrateAudioActivity.DEFAULT_THRESHOLD);
+        currentThreshold = sharedPreferences.getInt(SettingsActivity.PREF_THRESHOLD, SettingsActivity.DEFAULT_THRESHOLD);
 
         // start monitoring
         boolean success = monitor.startMonitoring();

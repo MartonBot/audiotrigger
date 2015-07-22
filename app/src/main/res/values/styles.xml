@@ -5,4 +5,9 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="SettingHeader" parent="AppTheme">
+        <item name="android:padding">5dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
 </resources>

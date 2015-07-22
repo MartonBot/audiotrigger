@@ -9,10 +9,11 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity">
 
-    <ImageView
+    <ImageButton
         android:id="@+id/settings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:contentDescription="@string/settings_label"
         android:padding="15dp"
         android:src="@drawable/ic_settings_white_24dp" />
 

@@ -1,10 +1,13 @@
 <resources>
     <string name="app_name">Audio Trigger</string>
 
-    <string name="action_settings">Settings</string>
-    <string name="start">Start</string>
-    <string name="reset">Reset</string>
-    <string name="title_activity_calibrate_audio">CalibrateAudioActivity</string>
+    <string name="reset">RESET</string>
 
-    <string name="hello_world">Hello world!</string>
+    <string name="audio_trigger_enabled">Enabled</string>
+    <string name="audio_trigger_disabled">Disabled</string>
+    <string name="audio_trigger_title">AUDIO TRIGGER</string>
+    <string name="threshold_title">THRESHOLD</string>
+    <string name="cooldown_title">TRIGGER COOLDOWN</string>
+    <string name="poll_interval_title">POLL INTERVAL</string>
+    <string name="settings_label">Settings</string>
 </resources>

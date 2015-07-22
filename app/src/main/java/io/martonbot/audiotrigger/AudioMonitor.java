@@ -8,7 +8,7 @@ import java.io.IOException;
 public class AudioMonitor {
 
     // TODO change that to 50 or less and recalculate the CONST value from floor and ceil
-    private final static int AMP_FLOOR = 3000;
+    private final static int AMP_FLOOR = 1500;
     private final static int AMP_CEIL = 30000;
     private final static double CONST = 10 / Math.log(AMP_CEIL / AMP_FLOOR);
 
@@ -52,14 +52,6 @@ public class AudioMonitor {
             mediaRecorder = null;
         }
     }
-
-    /*public int getMaxAmplitude() {
-        if (mediaRecorder != null) {
-            maxAmplitude = Math.max(mediaRecorder.getMaxAmplitude(), AMP_FLOOR);
-            return maxAmplitude;
-        }
-        return AMP_FLOOR;
-    }*/
 
     public int getLogMaxAmplitude() {
         if (mediaRecorder != null) {
