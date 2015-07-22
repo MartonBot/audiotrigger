@@ -24,6 +24,7 @@ public class MainActivity extends Activity {
     private int pollInterval;
 
     private View settingsButton;
+    private View settingsButton2;
     private View resetButton;
     private TextView minutesText;
     private TextView secondsText;
@@ -64,6 +65,7 @@ public class MainActivity extends Activity {
         hundredthsText = (TextView) findViewById(R.id.hundredths_text);
         ampDisc = findViewById(R.id.amp_disc);
         settingsButton = findViewById(R.id.settings_button);
+        settingsButton2 = findViewById(R.id.settings_button2);
         chronoView = findViewById(R.id.chrono_view);
 
         resetButton.setOnClickListener(new View.OnClickListener() {
@@ -77,6 +79,14 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 Intent settingsActivity = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(settingsActivity);
+            }
+        });
+
+        settingsButton2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent settingsActivity = new Intent(MainActivity.this, SettingsActivity2.class);
                 startActivity(settingsActivity);
             }
         });
