@@ -10,9 +10,10 @@
     tools:context=".MainActivity">
 
     <ImageButton
-        android:id="@+id/settings"
+        android:id="@+id/settings_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="?android:attr/selectableItemBackground"
         android:contentDescription="@string/settings_label"
         android:padding="15dp"
         android:src="@drawable/ic_settings_white_24dp" />
@@ -44,7 +45,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:padding="5dp"
-                android:text="00"
+                android:text="@string/double_zero"
                 android:textColor="@color/icons"
                 android:textSize="45sp" />
 
@@ -57,7 +58,7 @@
                 android:layout_toEndOf="@+id/minutes_text"
                 android:gravity="center"
                 android:padding="5dp"
-                android:text="00"
+                android:text="@string/double_zero"
                 android:textColor="@color/icons"
                 android:textSize="45sp" />
 
@@ -70,7 +71,7 @@
                 android:layout_toEndOf="@+id/seconds_text"
                 android:gravity="center"
                 android:padding="5dp"
-                android:text="00"
+                android:text="@string/double_zero"
                 android:textColor="@color/icons"
                 android:textSize="25sp" />
 
@@ -78,14 +79,16 @@
 
     </RelativeLayout>
 
-    <Button
+    <ImageButton
         android:id="@+id/reset_button"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:background="@drawable/light_circle"
-        android:text="@string/reset"
+        android:background="?android:attr/selectableItemBackground"
+        android:contentDescription="@string/reset_label"
+        android:padding="15dp"
+        android:src="@drawable/ic_restore_white_24dp"
         android:visibility="gone" />
 
 </RelativeLayout>

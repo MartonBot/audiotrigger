@@ -7,26 +7,28 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
 public class MainActivity extends Activity {
 
-    private static final long POLL_DELAY = 200;
     private static final long TICK_DELAY = 75;
-    // TODO expose in a setting
-    private static final long COOLDOWN = 500;
 
-    private Button resetButton;
+    private boolean isAudioEnabled;
+    private int threshold;
+    private int cooldown;
+    private int pollInterval;
+
+    private View settingsButton;
+    private View resetButton;
     private TextView minutesText;
     private TextView secondsText;
     private TextView hundredthsText;
     private View ampDisc;
-    private View settings;
     private View chronoView;
 
     private Runnable pollTask;
@@ -37,7 +39,6 @@ public class MainActivity extends Activity {
     private SharedPreferences sharedPreferences;
     private ScaleAnimation anim;
     private float currentScale = 1f;
-    private int currentThreshold;
 
     private boolean isChronometerRunning = false;
     private long elapsedTime = 0;
@@ -55,13 +56,14 @@ public class MainActivity extends Activity {
 
         monitor = new AudioMonitor();
         taskHandler = new Handler();
+        sharedPreferences = getSharedPreferences(Preferences.SHARED_PREFS, MODE_PRIVATE);
 
-        resetButton = (Button) findViewById(R.id.reset_button);
+        resetButton = findViewById(R.id.reset_button);
         minutesText = (TextView) findViewById(R.id.minutes_text);
         secondsText = (TextView) findViewById(R.id.seconds_text);
         hundredthsText = (TextView) findViewById(R.id.hundredths_text);
         ampDisc = findViewById(R.id.amp_disc);
-        settings = findViewById(R.id.settings);
+        settingsButton = findViewById(R.id.settings_button);
         chronoView = findViewById(R.id.chrono_view);
 
         resetButton.setOnClickListener(new View.OnClickListener() {
@@ -71,7 +73,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        settings.setOnClickListener(new View.OnClickListener() {
+        settingsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent settingsActivity = new Intent(MainActivity.this, SettingsActivity.class);
@@ -91,18 +93,19 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        sharedPreferences = getSharedPreferences(SettingsActivity.SHARED_PREFS, MODE_PRIVATE);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        currentThreshold = sharedPreferences.getInt(SettingsActivity.PREF_THRESHOLD, SettingsActivity.DEFAULT_THRESHOLD);
+        // shared preferences
+        isAudioEnabled = sharedPreferences.getBoolean(Preferences.PREF_AUDIO_ENABLED, true);
+        threshold = sharedPreferences.getInt(Preferences.PREF_THRESHOLD, Preferences.DEFAULT_THRESHOLD);
+        cooldown = sharedPreferences.getInt(Preferences.PREF_COOLDOWN, Preferences.DEFAULT_COOLDOWN);
+        pollInterval = sharedPreferences.getInt(Preferences.PREF_POLL_INTERVAL, Preferences.DEFAULT_POLL_INTERVAL);
 
         // start monitoring
-        boolean success = monitor.startMonitoring();
-        if (success) {
-            taskHandler.postDelayed(getPollTask(), POLL_DELAY);
+        if (isAudioEnabled) {
+            startAudioMonitoring();
         } else {
-            Toast errorToast = Toast.makeText(MainActivity.this, "Audio monitoring is not available", Toast.LENGTH_SHORT);
-            errorToast.show();
-            // TODO disable relevant UI parts
+            stopAudioMonitoring();
         }
 
         if (isChronometerRunning) {
@@ -115,8 +118,10 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         // stop monitoring
-        monitor.stopMonitoring();
+        stopAudioMonitoring();
 
         // cancel Handler callback
         taskHandler.removeCallbacks(getPollTask());
@@ -134,7 +139,6 @@ public class MainActivity extends Activity {
         isChronometerRunning = true;
         taskHandler.postDelayed(getTickTask(), TICK_DELAY);
         updateResetButton();
-        // TODO implement wake lock here
     }
 
     private void stopChronometer() {
@@ -175,21 +179,23 @@ public class MainActivity extends Activity {
                 public void run() {
 
                     int ampLog = monitor.getLogMaxAmplitude();
-                    float ratio = ampLog / (float) currentThreshold;
+                    float ratio = ampLog / (float) threshold;
 
                     anim = new ScaleAnimation(currentScale, (2 + ratio) / 3, currentScale, (2 + ratio) / 3, Animation.RELATIVE_TO_SELF, .5f, Animation.RELATIVE_TO_SELF, .5f);
-                    anim.setDuration((long) (POLL_DELAY * .75));
+                    anim.setDuration((long) (pollInterval * .75f));
                     anim.setFillEnabled(true);
                     anim.setFillAfter(true);
-                    currentScale = (2 + ratio) / 3;
                     ampDisc.startAnimation(anim);
 
-                    if (ampLog >= currentThreshold && SystemClock.elapsedRealtime() - triggerTime > COOLDOWN) {
-                        triggerTime = SystemClock.elapsedRealtime();
+                    currentScale = (2 + ratio) / 3;
+
+                    long time = SystemClock.elapsedRealtime();
+                    if (ampLog >= threshold && time - triggerTime > cooldown) {
+                        triggerTime = time;
                         toggleChronometer();
                     }
 
-                    taskHandler.postDelayed(this, POLL_DELAY);
+                    taskHandler.postDelayed(this, pollInterval);
                 }
             };
         }
@@ -225,5 +231,18 @@ public class MainActivity extends Activity {
         return String.format("%02d", n);
     }
 
+    private void startAudioMonitoring() {
+        boolean isAudioAvailable = monitor.startMonitoring();
+        if (isAudioAvailable) {
+            taskHandler.postDelayed(getPollTask(), pollInterval);
+        } else {
+            monitor.stopMonitoring();
+            Toast.makeText(MainActivity.this, "Audio monitoring is not available", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void stopAudioMonitoring() {
+        monitor.stopMonitoring();
+    }
 
 }

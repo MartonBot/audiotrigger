@@ -71,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp">
 
-                <View
+                <RelativeLayout
                     android:id="@+id/amp_bar"
                     android:layout_width="match_parent"
                     android:layout_height="5dp"

@@ -80,6 +80,7 @@ public class SettingsActivity extends Activity {
         pollIntervalAdapter.add(Preferences.DEFAULT_POLL_INTERVAL);
         pollIntervalAdapter.add(500);
         pollIntervalAdapter.add(1000);
+        pollIntervalAdapter.add(3000);
         pollIntervalSpinner.setAdapter(pollIntervalAdapter);
 
         enableAudioSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -90,15 +91,7 @@ public class SettingsActivity extends Activity {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean(Preferences.PREF_AUDIO_ENABLED, isChecked);
                 editor.apply();
-                int textId;
-                if (isAudioEnabled) {
-                    startAudioMonitoring();
-                    textId = R.string.audio_trigger_enabled;
-                } else {
-                    stopAudioMonitoring();
-                    textId = R.string.audio_trigger_disabled;
-                }
-                audioStatusText.setText(textId);
+                updateAudioTriggerStatusText();
             }
         });
 
@@ -176,6 +169,7 @@ public class SettingsActivity extends Activity {
         pollIntervalSpinner.setSelection(pollIntervalAdapter.getPosition(pollInterval));
 
         toggleAudioEnabled();
+        updateAudioTriggerStatusText();
     }
 
     @Override
@@ -201,12 +195,9 @@ public class SettingsActivity extends Activity {
 
                     int ampLog = monitor.getLogMaxAmplitude();
 
-                    anim = new ScaleAnimation(currentScale, ampLog / 10f, 1f, 1f);
-                    anim.setDuration((long) (pollInterval * .80));
-                    anim.setFillEnabled(true);
-                    anim.setFillAfter(true);
-                    ampBar.startAnimation(anim);
-                    currentScale = ampLog / 10f;
+                    float nextScale = ampLog / 10f;
+                    animateBar(currentScale, nextScale);
+                    currentScale = nextScale;
 
                     long time = SystemClock.elapsedRealtime();
                     boolean isTriggered = ampLog >= threshold && time >= triggerTime + cooldown;
@@ -214,8 +205,8 @@ public class SettingsActivity extends Activity {
                         triggerTime = time;
                     }
 
-                    int colorId = isTriggered ? R.color.primary_dark : R.color.primary_light;
-                    ampBar.setBackgroundColor(getResources().getColor(colorId));
+                    // int colorId = time < triggerTime + cooldown ? R.color.primary_dark : R.color.primary_light;
+                    // ampBar.setBackgroundColor(getResources().getColor(colorId));
 
                     taskHandler.postDelayed(this, pollInterval);
                 }
@@ -240,13 +231,32 @@ public class SettingsActivity extends Activity {
             taskHandler.postDelayed(getPollTask(), pollInterval);
         } else {
             monitor.stopMonitoring();
-            Toast errorToast = Toast.makeText(SettingsActivity.this, "Audio monitoring is not available", Toast.LENGTH_SHORT);
-            errorToast.show();
+            Toast.makeText(SettingsActivity.this, "Audio monitoring is not available", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void stopAudioMonitoring() {
         monitor.stopMonitoring();
+    }
+
+    private void updateAudioTriggerStatusText() {
+        int textId;
+        if (isAudioEnabled) {
+            startAudioMonitoring();
+            textId = R.string.audio_trigger_enabled;
+        } else {
+            stopAudioMonitoring();
+            textId = R.string.audio_trigger_disabled;
+        }
+        audioStatusText.setText(textId);
+    }
+
+    private void animateBar(float fromScale, float toScale) {
+        anim = new ScaleAnimation(fromScale, toScale, 1f, 1f);
+        anim.setDuration((long) (pollInterval * .75f)); //  to allow for slight inaccuracies so that he animation look seamless
+        anim.setFillEnabled(true);
+        anim.setFillAfter(true);
+        ampBar.startAnimation(anim);
     }
 
     private class DropdownAdapter extends ArrayAdapter<Integer> {
