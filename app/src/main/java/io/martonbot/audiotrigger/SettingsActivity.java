@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
 import android.view.animation.ScaleAnimation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -39,7 +40,8 @@ public class SettingsActivity extends Activity {
     private Handler taskHandler;
     private SharedPreferences sharedPreferences;
 
-    private ScaleAnimation anim;
+    private ScaleAnimation scaleAnimation;
+    private AlphaAnimation alphaAnimation;
     private float currentScale = 1f;
     private long triggerTime;
 
@@ -87,11 +89,10 @@ public class SettingsActivity extends Activity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 isAudioEnabled = isChecked;
-                toggleAudioEnabled();
+                updateAudioEnabled();
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean(Preferences.PREF_AUDIO_ENABLED, isChecked);
                 editor.apply();
-                updateAudioTriggerStatusText();
             }
         });
 
@@ -156,6 +157,10 @@ public class SettingsActivity extends Activity {
         cooldown = sharedPreferences.getInt(Preferences.PREF_COOLDOWN, Preferences.DEFAULT_COOLDOWN);
         pollInterval = sharedPreferences.getInt(Preferences.PREF_POLL_INTERVAL, Preferences.DEFAULT_POLL_INTERVAL);
 
+        // to update the UI anyway
+        if (isAudioEnabled == enableAudioSwitch.isChecked()) {
+            updateAudioEnabled();
+        }
         enableAudioSwitch.setChecked(isAudioEnabled);
         thresholdSeekBar.setProgress(threshold);
         cooldownSpinner.setSelection(cooldownAdapter.getPosition(cooldown));
@@ -170,8 +175,11 @@ public class SettingsActivity extends Activity {
         // stop monitoring
         stopAudioMonitoring();
 
-        if (anim != null) {
-            anim.cancel();
+        if (scaleAnimation != null) {
+            scaleAnimation.cancel();
+        }
+        if (alphaAnimation != null) {
+            alphaAnimation.cancel();
         }
     }
 
@@ -203,7 +211,7 @@ public class SettingsActivity extends Activity {
         return pollTask;
     }
 
-    private void toggleAudioEnabled() {
+    private void updateAudioEnabled() {
         int state;
         int textId;
         if (isAudioEnabled) {
@@ -216,9 +224,7 @@ public class SettingsActivity extends Activity {
             textId = R.string.audio_trigger_disabled;
         }
         audioStatusText.setText(textId);
-        // thresholdSection.setVisibility(state); // TODO set an opacity animation here
-        cooldownSection.setVisibility(state);
-        pollIntervalSection.setVisibility(state);
+        animateSections();
     }
 
     private void startAudioMonitoring() {
@@ -236,16 +242,24 @@ public class SettingsActivity extends Activity {
         taskHandler.removeCallbacks(getPollTask());
     }
 
-    private void updateAudioTriggerStatusText() {
-
+    private void animateBar(float fromScale, float toScale) {
+        scaleAnimation = new ScaleAnimation(fromScale, toScale, 1f, 1f);
+        scaleAnimation.setDuration((long) (pollInterval * .75f)); //  to allow for slight inaccuracies so that he animation look seamless
+        scaleAnimation.setFillEnabled(true);
+        scaleAnimation.setFillAfter(true);
+        ampBar.startAnimation(scaleAnimation);
     }
 
-    private void animateBar(float fromScale, float toScale) {
-        anim = new ScaleAnimation(fromScale, toScale, 1f, 1f);
-        anim.setDuration((long) (pollInterval * .75f)); //  to allow for slight inaccuracies so that he animation look seamless
-        anim.setFillEnabled(true);
-        anim.setFillAfter(true);
-        ampBar.startAnimation(anim);
+    private void animateSections() {
+        float from = isAudioEnabled ? .5f : 1f;
+        float to = isAudioEnabled ? 1f : .5f;
+        alphaAnimation = new AlphaAnimation(from, to);
+        alphaAnimation.setDuration(200);
+        alphaAnimation.setFillEnabled(true);
+        alphaAnimation.setFillAfter(true);
+        thresholdSection.startAnimation(alphaAnimation);
+        cooldownSection.startAnimation(alphaAnimation);
+        pollIntervalSection.startAnimation(alphaAnimation);
     }
 
     private class DropdownAdapter extends ArrayAdapter<Integer> {
