@@ -101,6 +101,8 @@ public class MainActivity extends Activity {
         cooldown = sharedPreferences.getInt(Preferences.PREF_COOLDOWN, Preferences.DEFAULT_COOLDOWN);
         pollInterval = sharedPreferences.getInt(Preferences.PREF_POLL_INTERVAL, Preferences.DEFAULT_POLL_INTERVAL);
 
+        updateChronoFields(elapsedTime);
+
         // start monitoring
         if (isAudioEnabled) {
             startAudioMonitoring();
@@ -129,8 +131,22 @@ public class MainActivity extends Activity {
         if (anim != null) {
             anim.cancel();
         }
+    }
 
-        // TODO consider saving elapsed time and running status to storage on Save Instance State
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(State.IS_RUNNING, isChronometerRunning);
+        outState.putLong(State.ELAPSED_TIME, elapsedTime);
+        outState.putLong(State.CHRONO_BASE, chronoBase);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        isChronometerRunning = savedInstanceState.getBoolean(State.IS_RUNNING);
+        elapsedTime = savedInstanceState.getLong(State.ELAPSED_TIME);
+        chronoBase = savedInstanceState.getLong(State.CHRONO_BASE);
     }
 
     private void startChronometer() {
@@ -209,14 +225,8 @@ public class MainActivity extends Activity {
                 public void run() {
 
                     // update the second hundredths
-                    long time = SystemClock.elapsedRealtime();
-                    hundredths = (int) (time - chronoBase) / 10;
-                    seconds = hundredths / 100;
-                    minutes = seconds / 60;
-
-                    hundredthsText.setText(format(hundredths % 100));
-                    secondsText.setText(format(seconds % 60));
-                    minutesText.setText(format(minutes % 60));
+                    elapsedTime = SystemClock.elapsedRealtime() - chronoBase;
+                    updateChronoFields(elapsedTime);
 
                     taskHandler.postDelayed(this, TICK_DELAY);
 
@@ -243,6 +253,16 @@ public class MainActivity extends Activity {
         monitor.stopMonitoring();
         // cancel Handler callback
         taskHandler.removeCallbacks(getPollTask());
+    }
+
+    private void updateChronoFields(long elapsed) {
+        hundredths = (int) (elapsed) / 10;
+        seconds = hundredths / 100;
+        minutes = seconds / 60;
+
+        hundredthsText.setText(format(hundredths % 100));
+        secondsText.setText(format(seconds % 60));
+        minutesText.setText(format(minutes % 60));
     }
 
 }
