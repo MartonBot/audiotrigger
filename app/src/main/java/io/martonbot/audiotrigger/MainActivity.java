@@ -42,12 +42,15 @@ public class MainActivity extends Activity {
 
     private boolean isChronometerRunning = false;
     private long elapsedTime = 0;
+    private long chronoBase;
     private long triggerTime;
 
-    private long chronoBase;
-    private int minutes;
-    private int seconds;
     private int hundredths;
+    private int seconds;
+    private int minutes;
+
+    private int hd;
+    private int sd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,7 +104,7 @@ public class MainActivity extends Activity {
         cooldown = sharedPreferences.getInt(Preferences.PREF_COOLDOWN, Preferences.DEFAULT_COOLDOWN);
         pollInterval = sharedPreferences.getInt(Preferences.PREF_POLL_INTERVAL, Preferences.DEFAULT_POLL_INTERVAL);
 
-        updateChronoFields(elapsedTime);
+        updateChronoFields(elapsedTime, true);
 
         // start monitoring
         if (isAudioEnabled) {
@@ -226,7 +229,7 @@ public class MainActivity extends Activity {
 
                     // update the second hundredths
                     elapsedTime = SystemClock.elapsedRealtime() - chronoBase;
-                    updateChronoFields(elapsedTime);
+                    updateChronoFields(elapsedTime, false);
 
                     taskHandler.postDelayed(this, TICK_DELAY);
 
@@ -255,14 +258,21 @@ public class MainActivity extends Activity {
         taskHandler.removeCallbacks(getPollTask());
     }
 
-    private void updateChronoFields(long elapsed) {
+    private void updateChronoFields(long elapsed, boolean forceUpdate) {
         hundredths = (int) (elapsed) / 10;
-        seconds = hundredths / 100;
-        minutes = seconds / 60;
+        hd = hundredths % 100;
+        hundredthsText.setText(format(hd));
 
-        hundredthsText.setText(format(hundredths % 100));
-        secondsText.setText(format(seconds % 60));
-        minutesText.setText(format(minutes % 60));
+        if (forceUpdate || hd <= 20) { // savin' CPU
+            seconds = hundredths / 100;
+            sd = seconds % 60;
+            secondsText.setText(format(sd));
+
+            if (forceUpdate || sd <= 1) { // savin' CPU
+                minutes = seconds / 60;
+                minutesText.setText(format(minutes % 60));
+            }
+        }
     }
 
 }
