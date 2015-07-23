@@ -24,7 +24,6 @@ public class MainActivity extends Activity {
     private int pollInterval;
 
     private View settingsButton;
-    private View settingsButton2;
     private View resetButton;
     private TextView minutesText;
     private TextView secondsText;
@@ -65,7 +64,6 @@ public class MainActivity extends Activity {
         hundredthsText = (TextView) findViewById(R.id.hundredths_text);
         ampDisc = findViewById(R.id.amp_disc);
         settingsButton = findViewById(R.id.settings_button);
-        settingsButton2 = findViewById(R.id.settings_button2);
         chronoView = findViewById(R.id.chrono_view);
 
         resetButton.setOnClickListener(new View.OnClickListener() {
@@ -79,14 +77,6 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 Intent settingsActivity = new Intent(MainActivity.this, SettingsActivity.class);
-                startActivity(settingsActivity);
-            }
-        });
-
-        settingsButton2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent settingsActivity = new Intent(MainActivity.this, SettingsActivity2.class);
                 startActivity(settingsActivity);
             }
         });
@@ -133,8 +123,7 @@ public class MainActivity extends Activity {
         // stop monitoring
         stopAudioMonitoring();
 
-        // cancel Handler callback
-        taskHandler.removeCallbacks(getPollTask());
+        // cancel Handler tickTask callback
         taskHandler.removeCallbacks(getTickTask());
 
         if (anim != null) {
@@ -229,7 +218,7 @@ public class MainActivity extends Activity {
                     secondsText.setText(format(seconds % 60));
                     minutesText.setText(format(minutes % 60));
 
-                    taskHandler.postDelayed(this, minutes);
+                    taskHandler.postDelayed(this, TICK_DELAY);
 
                 }
             };
@@ -242,17 +231,18 @@ public class MainActivity extends Activity {
     }
 
     private void startAudioMonitoring() {
-        boolean isAudioAvailable = monitor.startMonitoring();
-        if (isAudioAvailable) {
+        if (monitor.startMonitoring()) {
             taskHandler.postDelayed(getPollTask(), pollInterval);
         } else {
-            monitor.stopMonitoring();
+            stopAudioMonitoring();
             Toast.makeText(MainActivity.this, "Audio monitoring is not available", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void stopAudioMonitoring() {
         monitor.stopMonitoring();
+        // cancel Handler callback
+        taskHandler.removeCallbacks(getPollTask());
     }
 
 }

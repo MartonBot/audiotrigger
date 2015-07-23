@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class AudioMonitor {
 
-    private final static int AMP_FLOOR = 10;
+    private final static int AMP_FLOOR = 50;
     private final static int AMP_CEIL = 30000;
     private final static double CONST = 10 / Math.log(AMP_CEIL / AMP_FLOOR);
 
@@ -59,6 +59,5 @@ public class AudioMonitor {
         }
         return AMP_FLOOR;
     }
-
 
 }

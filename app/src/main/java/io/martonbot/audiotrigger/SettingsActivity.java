@@ -156,20 +156,11 @@ public class SettingsActivity extends Activity {
         cooldown = sharedPreferences.getInt(Preferences.PREF_COOLDOWN, Preferences.DEFAULT_COOLDOWN);
         pollInterval = sharedPreferences.getInt(Preferences.PREF_POLL_INTERVAL, Preferences.DEFAULT_POLL_INTERVAL);
 
-        // start monitoring
-        if (isAudioEnabled) {
-            startAudioMonitoring();
-        } else {
-            stopAudioMonitoring();
-        }
-
         enableAudioSwitch.setChecked(isAudioEnabled);
         thresholdSeekBar.setProgress(threshold);
         cooldownSpinner.setSelection(cooldownAdapter.getPosition(cooldown));
         pollIntervalSpinner.setSelection(pollIntervalAdapter.getPosition(pollInterval));
 
-        toggleAudioEnabled();
-        updateAudioTriggerStatusText();
     }
 
     @Override
@@ -178,9 +169,6 @@ public class SettingsActivity extends Activity {
 
         // stop monitoring
         stopAudioMonitoring();
-
-        // cancel Handler callback
-        taskHandler.removeCallbacks(getPollTask());
 
         if (anim != null) {
             anim.cancel();
@@ -205,8 +193,8 @@ public class SettingsActivity extends Activity {
                         triggerTime = time;
                     }
 
-                    // int colorId = time < triggerTime + cooldown ? R.color.primary_dark : R.color.primary_light;
-                    // ampBar.setBackgroundColor(getResources().getColor(colorId));
+                    int colorId = time < triggerTime + cooldown ? R.color.primary_dark : R.color.primary_light;
+                    ampBar.setBackgroundColor(getResources().getColor(colorId));
 
                     taskHandler.postDelayed(this, pollInterval);
                 }
@@ -216,39 +204,40 @@ public class SettingsActivity extends Activity {
     }
 
     private void toggleAudioEnabled() {
-        int state = View.VISIBLE;
-        if (!isAudioEnabled) {
+        int state;
+        int textId;
+        if (isAudioEnabled) {
+            state = View.VISIBLE;
+            startAudioMonitoring();
+            textId = R.string.audio_trigger_enabled;
+        } else {
             state = View.INVISIBLE;
+            stopAudioMonitoring();
+            textId = R.string.audio_trigger_disabled;
         }
-        thresholdSection.setVisibility(state);
+        audioStatusText.setText(textId);
+        // thresholdSection.setVisibility(state); // TODO set an opacity animation here
         cooldownSection.setVisibility(state);
         pollIntervalSection.setVisibility(state);
     }
 
     private void startAudioMonitoring() {
-        boolean isAudioAvailable = monitor.startMonitoring();
-        if (isAudioAvailable) {
+        if (monitor.startMonitoring()) {
             taskHandler.postDelayed(getPollTask(), pollInterval);
         } else {
-            monitor.stopMonitoring();
+            stopAudioMonitoring();
             Toast.makeText(SettingsActivity.this, "Audio monitoring is not available", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void stopAudioMonitoring() {
         monitor.stopMonitoring();
+        // cancel Handler callback
+        taskHandler.removeCallbacks(getPollTask());
     }
 
     private void updateAudioTriggerStatusText() {
-        int textId;
-        if (isAudioEnabled) {
-            startAudioMonitoring();
-            textId = R.string.audio_trigger_enabled;
-        } else {
-            stopAudioMonitoring();
-            textId = R.string.audio_trigger_disabled;
-        }
-        audioStatusText.setText(textId);
+
     }
 
     private void animateBar(float fromScale, float toScale) {
