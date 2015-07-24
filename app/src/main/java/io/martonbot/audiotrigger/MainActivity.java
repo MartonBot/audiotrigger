@@ -162,6 +162,7 @@ public class MainActivity extends Activity {
     private void stopChronometer() {
         elapsedTime = SystemClock.elapsedRealtime() - chronoBase;
         taskHandler.removeCallbacks(getTickTask());
+        updateChronoFields(elapsedTime, true); // to make sure the chrono displays the latest version of recorded elapsed time
         isChronometerRunning = false;
         updateResetButton();
     }
