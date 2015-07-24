@@ -110,7 +110,9 @@
                 <Spinner
                     android:id="@+id/cooldown_spinner"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:dropDownWidth="wrap_content"
+                    android:gravity="center" />
 
             </RelativeLayout>
 
@@ -138,7 +140,9 @@
                 <Spinner
                     android:id="@+id/poll_interval_spinner"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:dropDownWidth="wrap_content"
+                    android:gravity="center" />
 
             </RelativeLayout>
 

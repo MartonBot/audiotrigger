@@ -212,14 +212,11 @@ public class SettingsActivity extends Activity {
     }
 
     private void updateAudioEnabled() {
-        int state;
         int textId;
         if (isAudioEnabled) {
-            state = View.VISIBLE;
             startAudioMonitoring();
             textId = R.string.audio_trigger_enabled;
         } else {
-            state = View.INVISIBLE;
             stopAudioMonitoring();
             textId = R.string.audio_trigger_disabled;
         }
@@ -229,6 +226,8 @@ public class SettingsActivity extends Activity {
 
     private void startAudioMonitoring() {
         if (monitor.startMonitoring()) {
+            // as a security, make sure we remove posted tasks
+            taskHandler.removeCallbacks(getPollTask());
             taskHandler.postDelayed(getPollTask(), pollInterval);
         } else {
             stopAudioMonitoring();

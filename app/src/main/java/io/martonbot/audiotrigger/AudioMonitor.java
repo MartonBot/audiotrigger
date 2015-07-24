@@ -30,7 +30,12 @@ public class AudioMonitor {
                 stopMonitoring();
                 return false;
             }
-            mediaRecorder.start();
+            try {
+                mediaRecorder.start();
+            } catch (RuntimeException e) {
+                stopMonitoring();
+                return false;
+            }
         }
         return true;
     }
