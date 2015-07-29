@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.ScaleAnimation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -19,10 +18,6 @@ import android.widget.Toast;
 
 
 public class SettingsActivity extends Activity {
-
-    private View thresholdSection;
-    private View cooldownSection;
-    private View pollIntervalSection;
 
     private View ampBar;
     private TextView audioStatusText;
@@ -41,14 +36,16 @@ public class SettingsActivity extends Activity {
     private SharedPreferences sharedPreferences;
 
     private ScaleAnimation scaleAnimation;
-    private AlphaAnimation alphaAnimation;
     private float currentScale = 1f;
     private long triggerTime;
 
     private boolean isAudioEnabled;
+    private boolean isAudioAvailable = true;
     private int threshold;
     private int cooldown;
     private int pollInterval;
+
+    private CompoundButton.OnCheckedChangeListener onAudioStatusCheckedChangeListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,10 +55,6 @@ public class SettingsActivity extends Activity {
         monitor = new AudioMonitor();
         taskHandler = new Handler();
         sharedPreferences = getSharedPreferences(Preferences.SHARED_PREFS, MODE_PRIVATE);
-
-        thresholdSection = findViewById(R.id.threshold_level_section);
-        cooldownSection = findViewById(R.id.trigger_cooldown_section);
-        pollIntervalSection = findViewById(R.id.poll_interval_section);
 
         ampBar = findViewById(R.id.amp_bar);
         audioStatusText = (TextView) findViewById(R.id.audio_status_text);
@@ -89,7 +82,14 @@ public class SettingsActivity extends Activity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 isAudioEnabled = isChecked;
-                updateAudioEnabled();
+                updateAudioStatusText();
+                if (isAudioEnabled) {
+                    startAudioMonitoring();
+                    taskHandler.removeCallbacks(getPollTask()); // so we never have more than one running
+                    taskHandler.post(getPollTask());
+                } else {
+                    stopAudioMonitoring();
+                }
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean(Preferences.PREF_AUDIO_ENABLED, isChecked);
                 editor.apply();
@@ -157,14 +157,19 @@ public class SettingsActivity extends Activity {
         cooldown = sharedPreferences.getInt(Preferences.PREF_COOLDOWN, Preferences.DEFAULT_COOLDOWN);
         pollInterval = sharedPreferences.getInt(Preferences.PREF_POLL_INTERVAL, Preferences.DEFAULT_POLL_INTERVAL);
 
-        // to update the UI anyway
-        if (isAudioEnabled == enableAudioSwitch.isChecked()) {
-            updateAudioEnabled();
-        }
         enableAudioSwitch.setChecked(isAudioEnabled);
         thresholdSeekBar.setProgress(threshold);
         cooldownSpinner.setSelection(cooldownAdapter.getPosition(cooldown));
         pollIntervalSpinner.setSelection(pollIntervalAdapter.getPosition(pollInterval));
+
+        enableAudioSwitch.setOnCheckedChangeListener(getOnAudioStatusCheckedChangeListener());
+
+        // start monitoring
+        if (isAudioEnabled) {
+            startAudioMonitoring();
+        }
+
+        taskHandler.postDelayed(getPollTask(), (long) (pollInterval * .5f));
 
     }
 
@@ -175,12 +180,14 @@ public class SettingsActivity extends Activity {
         // stop monitoring
         stopAudioMonitoring();
 
+        // cancel Handler tickTask callback
+        taskHandler.removeCallbacks(getPollTask());
+
         if (scaleAnimation != null) {
             scaleAnimation.cancel();
         }
-        if (alphaAnimation != null) {
-            alphaAnimation.cancel();
-        }
+
+        enableAudioSwitch.setOnCheckedChangeListener(null);
     }
 
     private Runnable getPollTask() {
@@ -204,41 +211,35 @@ public class SettingsActivity extends Activity {
                     int colorId = time < triggerTime + cooldown ? R.color.primary_dark : R.color.primary_light;
                     ampBar.setBackgroundColor(getResources().getColor(colorId));
 
-                    taskHandler.postDelayed(this, pollInterval);
+                    if (isAudioEnabled && isAudioAvailable) {
+                        taskHandler.postDelayed(this, pollInterval);
+                    }
                 }
             };
         }
         return pollTask;
     }
 
-    private void updateAudioEnabled() {
+    private void updateAudioStatusText() {
         int textId;
         if (isAudioEnabled) {
-            startAudioMonitoring();
             textId = R.string.audio_trigger_enabled;
         } else {
-            stopAudioMonitoring();
             textId = R.string.audio_trigger_disabled;
         }
         audioStatusText.setText(textId);
-        animateSections();
     }
 
     private void startAudioMonitoring() {
-        if (monitor.startMonitoring()) {
-            // as a security, make sure we remove posted tasks
-            taskHandler.removeCallbacks(getPollTask());
-            taskHandler.postDelayed(getPollTask(), pollInterval);
-        } else {
-            stopAudioMonitoring();
+        isAudioAvailable = monitor.startMonitoring();
+        if (!isAudioAvailable) {
             Toast.makeText(SettingsActivity.this, "Audio monitoring is not available", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void stopAudioMonitoring() {
         monitor.stopMonitoring();
-        // cancel Handler callback
-        taskHandler.removeCallbacks(getPollTask());
+        isAudioAvailable = true;
     }
 
     private void animateBar(float fromScale, float toScale) {
@@ -249,16 +250,27 @@ public class SettingsActivity extends Activity {
         ampBar.startAnimation(scaleAnimation);
     }
 
-    private void animateSections() {
-        float from = isAudioEnabled ? .5f : 1f;
-        float to = isAudioEnabled ? 1f : .5f;
-        alphaAnimation = new AlphaAnimation(from, to);
-        alphaAnimation.setDuration(200);
-        alphaAnimation.setFillEnabled(true);
-        alphaAnimation.setFillAfter(true);
-        thresholdSection.startAnimation(alphaAnimation);
-        cooldownSection.startAnimation(alphaAnimation);
-        pollIntervalSection.startAnimation(alphaAnimation);
+    private CompoundButton.OnCheckedChangeListener getOnAudioStatusCheckedChangeListener() {
+        if (onAudioStatusCheckedChangeListener == null) {
+            onAudioStatusCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    isAudioEnabled = isChecked;
+                    updateAudioStatusText();
+                    if (isAudioEnabled) {
+                        startAudioMonitoring();
+                        taskHandler.removeCallbacks(getPollTask()); // so we never have more than one running
+                        taskHandler.post(getPollTask());
+                    } else {
+                        stopAudioMonitoring();
+                    }
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean(Preferences.PREF_AUDIO_ENABLED, isChecked);
+                    editor.apply();
+                }
+            };
+        }
+        return onAudioStatusCheckedChangeListener;
     }
 
     private class DropdownAdapter extends ArrayAdapter<Integer> {

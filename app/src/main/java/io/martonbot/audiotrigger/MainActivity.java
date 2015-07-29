@@ -19,6 +19,7 @@ public class MainActivity extends Activity {
     private static final long TICK_DELAY = 75;
 
     private boolean isAudioEnabled;
+    private boolean isAudioAvailable = true;
     private int threshold;
     private int cooldown;
     private int pollInterval;
@@ -104,18 +105,15 @@ public class MainActivity extends Activity {
         cooldown = sharedPreferences.getInt(Preferences.PREF_COOLDOWN, Preferences.DEFAULT_COOLDOWN);
         pollInterval = sharedPreferences.getInt(Preferences.PREF_POLL_INTERVAL, Preferences.DEFAULT_POLL_INTERVAL);
 
-        updateChronoFields(elapsedTime, true);
+        updateResetButton();
 
         // start monitoring
         if (isAudioEnabled) {
             startAudioMonitoring();
-        } else {
-            stopAudioMonitoring();
         }
 
-        if (isChronometerRunning) {
-            taskHandler.postDelayed(getTickTask(), TICK_DELAY);
-        }
+        taskHandler.postDelayed(getPollTask(), (long) (pollInterval * .5f));
+        taskHandler.postDelayed(getTickTask(), (long) (TICK_DELAY * .5f));
 
     }
 
@@ -130,6 +128,7 @@ public class MainActivity extends Activity {
 
         // cancel Handler tickTask callback
         taskHandler.removeCallbacks(getTickTask());
+        taskHandler.removeCallbacks(getPollTask());
 
         if (anim != null) {
             anim.cancel();
@@ -214,7 +213,9 @@ public class MainActivity extends Activity {
                         toggleChronometer();
                     }
 
-                    taskHandler.postDelayed(this, pollInterval);
+                    if (isAudioEnabled && isAudioAvailable) {
+                        taskHandler.postDelayed(this, pollInterval);
+                    }
                 }
             };
         }
@@ -228,11 +229,12 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
 
-                    // update the second hundredths
-                    elapsedTime = SystemClock.elapsedRealtime() - chronoBase;
                     updateChronoFields(elapsedTime, false);
 
-                    taskHandler.postDelayed(this, TICK_DELAY);
+                    if (isChronometerRunning) {
+                        elapsedTime = SystemClock.elapsedRealtime() - chronoBase;
+                        taskHandler.postDelayed(this, TICK_DELAY);
+                    }
 
                 }
             };
@@ -245,18 +247,15 @@ public class MainActivity extends Activity {
     }
 
     private void startAudioMonitoring() {
-        if (monitor.startMonitoring()) {
-            taskHandler.postDelayed(getPollTask(), pollInterval);
-        } else {
-            stopAudioMonitoring();
+        isAudioAvailable = monitor.startMonitoring();
+        if (!isAudioAvailable) {
             Toast.makeText(MainActivity.this, "Audio monitoring is not available", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void stopAudioMonitoring() {
         monitor.stopMonitoring();
-        // cancel Handler callback
-        taskHandler.removeCallbacks(getPollTask());
+        isAudioAvailable = true;
     }
 
     private void updateChronoFields(long elapsed, boolean forceUpdate) {

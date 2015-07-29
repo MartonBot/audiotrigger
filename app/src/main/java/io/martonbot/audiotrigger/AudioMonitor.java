@@ -15,6 +15,8 @@ public class AudioMonitor {
 
     public boolean startMonitoring() {
 
+        boolean ret = true;
+
         if (mediaRecorder == null) {
             mediaRecorder = new MediaRecorder();
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -28,16 +30,16 @@ public class AudioMonitor {
                 mediaRecorder.prepare();
             } catch (IOException e) {
                 stopMonitoring();
-                return false;
+                ret = false;
             }
             try {
                 mediaRecorder.start();
             } catch (RuntimeException e) {
                 stopMonitoring();
-                return false;
+                ret = false;
             }
         }
-        return true;
+        return ret;
     }
 
     public void stopMonitoring() {
@@ -62,7 +64,7 @@ public class AudioMonitor {
             int maxAmplitude = Math.max(mediaRecorder.getMaxAmplitude(), AMP_FLOOR);
             return (int) (CONST * Math.log(maxAmplitude / ((double) AMP_FLOOR)));
         }
-        return AMP_FLOOR;
+        return 0;
     }
 
 }
