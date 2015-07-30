@@ -17,6 +17,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     private static final long TICK_DELAY = 75;
+    private static final String ZERO_ZERO = "00";
 
     private boolean isAudioEnabled;
     private boolean isAudioAvailable = true;
@@ -112,8 +113,8 @@ public class MainActivity extends Activity {
             startAudioMonitoring();
         }
 
-        taskHandler.postDelayed(getPollTask(), (long) (pollInterval * .5f));
-        taskHandler.postDelayed(getTickTask(), (long) (TICK_DELAY * .5f));
+        taskHandler.postDelayed(getPollTask(), Constants.DELAY_AFTER_START);
+        taskHandler.post(getTickTask());
 
     }
 
@@ -177,9 +178,9 @@ public class MainActivity extends Activity {
     private void reset() {
         elapsedTime = 0;
         updateResetButton();
-        hundredthsText.setText("00");
-        secondsText.setText("00");
-        minutesText.setText("00");
+        hundredthsText.setText(ZERO_ZERO);
+        secondsText.setText(ZERO_ZERO);
+        minutesText.setText(ZERO_ZERO);
     }
 
     private void updateResetButton() {
@@ -259,18 +260,18 @@ public class MainActivity extends Activity {
     }
 
     private void updateChronoFields(long elapsed, boolean forceUpdate) {
-        hundredths = (int) (elapsed) / 10;
-        hd = hundredths % 100;
+        hundredths = (int) (elapsed) / Constants.TEN;
+        hd = hundredths % Constants.ONE_HUNDRED;
         hundredthsText.setText(format(hd));
 
         if (forceUpdate || hd <= 20) { // savin' CPU
-            seconds = hundredths / 100;
-            sd = seconds % 60;
+            seconds = hundredths / Constants.ONE_HUNDRED;
+            sd = seconds % Constants.SIXTY;
             secondsText.setText(format(sd));
 
             if (forceUpdate || sd <= 1) { // savin' CPU
-                minutes = seconds / 60;
-                minutesText.setText(format(minutes % 60));
+                minutes = seconds / Constants.SIXTY;
+                minutesText.setText(format(minutes % Constants.SIXTY));
             }
         }
     }

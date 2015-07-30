@@ -75,7 +75,6 @@ public class SettingsActivity extends Activity {
         pollIntervalAdapter.add(Preferences.DEFAULT_POLL_INTERVAL);
         pollIntervalAdapter.add(500);
         pollIntervalAdapter.add(1000);
-        pollIntervalAdapter.add(3000);
         pollIntervalSpinner.setAdapter(pollIntervalAdapter);
 
         enableAudioSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -169,7 +168,8 @@ public class SettingsActivity extends Activity {
             startAudioMonitoring();
         }
 
-        taskHandler.postDelayed(getPollTask(), (long) (pollInterval * .5f));
+        taskHandler.removeCallbacks(getPollTask()); // so we never have more than one running
+        taskHandler.postDelayed(getPollTask(), Constants.DELAY_AFTER_START);
 
     }
 
