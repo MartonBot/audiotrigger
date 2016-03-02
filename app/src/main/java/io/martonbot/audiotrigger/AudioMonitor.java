@@ -7,9 +7,7 @@ import java.io.IOException;
 
 public class AudioMonitor {
 
-    private final static int AMP_FLOOR = 50;
-    private final static int AMP_CEIL = 30000;
-    private final static double CONST = 10 / Math.log(AMP_CEIL / AMP_FLOOR);
+    private AudioConfig config = AudioConfig.NORMAL;
 
     private MediaRecorder mediaRecorder;
 
@@ -61,10 +59,30 @@ public class AudioMonitor {
 
     public int getLogMaxAmplitude() {
         if (mediaRecorder != null) {
-            int maxAmplitude = Math.max(mediaRecorder.getMaxAmplitude(), AMP_FLOOR);
-            return (int) (CONST * Math.log(maxAmplitude / ((double) AMP_FLOOR)));
+            int maxAmplitude = Math.max(mediaRecorder.getMaxAmplitude(), config.ampFloor);
+            return (int) (config.logRatio * Math.log(maxAmplitude / ((double) config.ampFloor)));
         }
         return 0;
     }
 
+    public void setAudioConfig(AudioConfig c) {
+        this.config = c;
+    }
+
+    public static enum AudioConfig {
+
+        NORMAL (100, 30000),
+        NOISY (500, 40000);
+
+        private AudioConfig(int floor, int ceil) {
+            this.ampFloor = floor;
+            this.ampCeiling = ceil;
+            this.logRatio = 10 / Math.log(ampCeiling / ((double) ampFloor));
+        }
+
+        private final int ampFloor;
+        private final int ampCeiling;
+        private final double logRatio;
+
+    }
 }
