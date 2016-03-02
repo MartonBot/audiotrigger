@@ -69,12 +69,12 @@ public class AudioMonitor {
         this.config = c;
     }
 
-    public static enum AudioConfig {
+    public enum AudioConfig {
 
         NORMAL (100, 30000),
         NOISY (500, 40000);
 
-        private AudioConfig(int floor, int ceil) {
+        AudioConfig(int floor, int ceil) {
             this.ampFloor = floor;
             this.ampCeiling = ceil;
             this.logRatio = 10 / Math.log(ampCeiling / ((double) ampFloor));
@@ -84,5 +84,9 @@ public class AudioMonitor {
         private final int ampCeiling;
         private final double logRatio;
 
+    }
+
+    public AudioMonitor(AudioConfig environment) {
+        this.config = environment;
     }
 }

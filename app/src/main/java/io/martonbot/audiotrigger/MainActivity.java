@@ -13,6 +13,8 @@ import android.view.animation.ScaleAnimation;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import io.martonbot.audiotrigger.AudioMonitor.AudioConfig;
+
 
 public class MainActivity extends Activity {
 
@@ -59,9 +61,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        monitor = new AudioMonitor();
-        taskHandler = new Handler();
         sharedPreferences = getSharedPreferences(Preferences.SHARED_PREFS, MODE_PRIVATE);
+
+        monitor = new AudioMonitor(AudioConfig.valueOf(sharedPreferences.getString(Preferences.PREF_ENVIRONMENT, Preferences.DEFAULT_ENVIRONMENT)));
+        taskHandler = new Handler();
 
         resetButton = findViewById(R.id.reset_button);
         minutesText = (TextView) findViewById(R.id.minutes_text);

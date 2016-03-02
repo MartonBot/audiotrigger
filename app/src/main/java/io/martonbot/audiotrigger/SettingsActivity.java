@@ -16,6 +16,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import io.martonbot.audiotrigger.AudioMonitor.AudioConfig;
+
 
 public class SettingsActivity extends Activity {
 
@@ -23,11 +25,13 @@ public class SettingsActivity extends Activity {
     private TextView audioStatusText;
     private Switch enableAudioSwitch;
     private SeekBar thresholdSeekBar;
+    private Spinner environmentSpinner;
     private Spinner cooldownSpinner;
     private Spinner pollIntervalSpinner;
 
-    private DropdownAdapter cooldownAdapter;
-    private DropdownAdapter pollIntervalAdapter;
+    private TextDropdownAdapter environmentAdapter;
+    private IntDropdownAdapter cooldownAdapter;
+    private IntDropdownAdapter pollIntervalAdapter;
 
     private AudioMonitor monitor;
 
@@ -42,6 +46,7 @@ public class SettingsActivity extends Activity {
     private boolean isAudioEnabled;
     private boolean isAudioAvailable = true;
     private int threshold;
+    private AudioConfig environment;
     private int cooldown;
     private int pollInterval;
 
@@ -52,26 +57,33 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        monitor = new AudioMonitor();
-        taskHandler = new Handler();
         sharedPreferences = getSharedPreferences(Preferences.SHARED_PREFS, MODE_PRIVATE);
+
+        monitor = new AudioMonitor(AudioConfig.valueOf(sharedPreferences.getString(Preferences.PREF_ENVIRONMENT, Preferences.DEFAULT_ENVIRONMENT)));
+        taskHandler = new Handler();
 
         ampBar = findViewById(R.id.amp_bar);
         audioStatusText = (TextView) findViewById(R.id.audio_status_text);
 
         enableAudioSwitch = (Switch) findViewById(R.id.switch_enable_audio);
         thresholdSeekBar = (SeekBar) findViewById(R.id.threshold_seekbar);
+        environmentSpinner = (Spinner) findViewById(R.id.environment_spinner);
         cooldownSpinner = (Spinner) findViewById(R.id.cooldown_spinner);
         pollIntervalSpinner = (Spinner) findViewById(R.id.poll_interval_spinner);
 
-        cooldownAdapter = new DropdownAdapter();
+        environmentAdapter = new TextDropdownAdapter();
+        environmentAdapter.add(Preferences.DEFAULT_ENVIRONMENT);
+        environmentAdapter.add(AudioConfig.NOISY.toString());
+        environmentSpinner.setAdapter(environmentAdapter);
+
+        cooldownAdapter = new IntDropdownAdapter();
         cooldownAdapter.add(500);
         cooldownAdapter.add(Preferences.DEFAULT_COOLDOWN);
         cooldownAdapter.add(2000);
         cooldownAdapter.add(5000);
         cooldownSpinner.setAdapter(cooldownAdapter);
 
-        pollIntervalAdapter = new DropdownAdapter();
+        pollIntervalAdapter = new IntDropdownAdapter();
         pollIntervalAdapter.add(Preferences.DEFAULT_POLL_INTERVAL);
         pollIntervalAdapter.add(500);
         pollIntervalAdapter.add(1000);
@@ -115,6 +127,22 @@ public class SettingsActivity extends Activity {
 
         });
 
+        environmentSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                AudioConfig environment = AudioConfig.valueOf((String) environmentSpinner.getSelectedItem());
+                monitor.setAudioConfig(environment);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString(Preferences.PREF_ENVIRONMENT, environment.toString());
+                editor.apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // do nothing
+            }
+        });
+
         cooldownSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -153,11 +181,13 @@ public class SettingsActivity extends Activity {
         // shared preferences
         isAudioEnabled = sharedPreferences.getBoolean(Preferences.PREF_AUDIO_ENABLED, true);
         threshold = sharedPreferences.getInt(Preferences.PREF_THRESHOLD, Preferences.DEFAULT_THRESHOLD);
+        environment = AudioConfig.valueOf(sharedPreferences.getString(Preferences.PREF_ENVIRONMENT, Preferences.DEFAULT_ENVIRONMENT));
         cooldown = sharedPreferences.getInt(Preferences.PREF_COOLDOWN, Preferences.DEFAULT_COOLDOWN);
         pollInterval = sharedPreferences.getInt(Preferences.PREF_POLL_INTERVAL, Preferences.DEFAULT_POLL_INTERVAL);
 
         enableAudioSwitch.setChecked(isAudioEnabled);
         thresholdSeekBar.setProgress(threshold);
+        environmentSpinner.setSelection(environmentAdapter.getPosition(environment.toString()));
         cooldownSpinner.setSelection(cooldownAdapter.getPosition(cooldown));
         pollIntervalSpinner.setSelection(pollIntervalAdapter.getPosition(pollInterval));
 
@@ -273,9 +303,17 @@ public class SettingsActivity extends Activity {
         return onAudioStatusCheckedChangeListener;
     }
 
-    private class DropdownAdapter extends ArrayAdapter<Integer> {
+    private class IntDropdownAdapter extends ArrayAdapter<Integer> {
 
-        public DropdownAdapter() {
+        public IntDropdownAdapter() {
+            super(SettingsActivity.this, R.layout.dropdown_item);
+        }
+
+    }
+
+    private class TextDropdownAdapter extends ArrayAdapter<String> {
+
+        public TextDropdownAdapter() {
             super(SettingsActivity.this, R.layout.dropdown_item);
         }
 

@@ -53,6 +53,35 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/environment_selection_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+            <TextView
+                style="@style/SettingHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/environment_selection_title" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end">
+
+                <Spinner
+                    android:id="@+id/environment_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:dropDownWidth="wrap_content"
+                    android:gravity="center" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/threshold_level_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -115,7 +144,6 @@
                     android:gravity="center" />
 
             </RelativeLayout>
-
 
         </LinearLayout>
 
